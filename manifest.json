@@ -3,7 +3,7 @@
   "author": "Antony Krithikesh",
   "description": "Dynamics 365 Web Api based counter for both Odata query and Fetch XML based",
 
-  "version": "1.2.2",
+  "version": "1.2.3",
   "permissions": [
     "https://*/*",
     "http://*/*",
