@@ -1,0 +1,35 @@
+{
+  "name": "Dynamics 365 Record Counter",
+  "author": "Antony Krithikesh",
+  "description": "Dynamics 365 Web Api based counter for both Odata query and Fetch XML based",
+
+  "version": "1.2.2",
+  "permissions": [
+    "https://*/*",
+    "http://*/*",
+    "tabs",
+    "activeTab"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["app.js"]
+    }
+  ],
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "browser_action": {
+      "default_title": "Dynamics Counter.",
+      "default_icon": "icon.png",
+      "default_popup": "popup.html"
+  },  
+  "web_accessible_resources": ["mainmethods.js","counterdialog.css"],
+  "manifest_version": 2
+}

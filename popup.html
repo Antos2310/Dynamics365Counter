@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Count it!</title>
+    <style>
+    body {
+            min-width:130px;
+            font-family: "Segoe UI" , "Segoe" , Tahoma, Helvetica, Arial, sans-serif;
+            font-size: 14px;
+        }
+        .container{
+            display: -webkit-flex;
+            display: flex;
+            -webkit-flex-direction: row;
+            flex-direction: row;
+            -webkit-flex-flow: row wrap;
+            flex-flow: row wrap;
+            width: 100%;
+        }
+        .links{
+            padding: 10px;
+            background: #00008b;
+            color: white;
+            margin: 5px;
+            text-align: center;
+            width: inherit;
+        }
+        .links:hover{
+            cursor: pointer;
+            background: rgb(192, 47, 47);
+        }
+        .section{
+            font-size: 16px;
+            font-weight: 600;
+        }
+    </style>
+  </head>
+  <body>
+    <div id="crmCounterLinks" >
+      <div class="container">
+        <div class="links" id="WebApi">OData</div>
+        <div class="links" id="FetchXml">Fetch XML</div>
+      </div>
+  </div>   
+  <script src="popup.js"></script>    
+  </body>
+</html>
