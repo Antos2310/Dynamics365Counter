@@ -16,15 +16,15 @@ var pluralName = "";
         count = 0;
 
         createDailog();
-
-        Xrm.WebApi.retrieveMultipleRecords("EntityDefinitions", "?$select=LogicalName").then(
-            function (results) {
+        
+            Send_Request("EntityDefinitions?$select=LogicalName", true, 'GET', null,
+                function (results) {
                 var entitySelectDiag = document.getElementById("counterKriDialog");
                 var inputtext = document.getElementById("counterKriInput");
                 var Ok = document.getElementById("counterKriOk");
                 var Cancel = document.getElementById("counterKriCancel");
 
-                autocomplete(inputtext, results.entities).then(() => {
+                autocomplete(inputtext, results.value).then(() => {
                     Ok.onclick = function () {
                         closeDialog(entitySelectDiag).then(() => {
                             setTimeout(function () {
@@ -42,13 +42,7 @@ var pluralName = "";
                     entitySelectDiag.open = true;
 
                 });
-            },
-            function (error) {
-                Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: error });
-            }
-        );
-
-
+            });
     };
     Dynamics365.FetchXml = function (formWindow, Xrm) {
         count = 0;
@@ -56,14 +50,14 @@ var pluralName = "";
 
         createDailog();
 
-        Xrm.WebApi.retrieveMultipleRecords("EntityDefinitions", "?$select=LogicalName").then(
-            function (results) {
+        Send_Request("EntityDefinitions?$select=LogicalName", true, 'GET', null,
+                function (results) {
                 var entitySelectDiag = document.getElementById("counterKriDialog");
                 var inputtext = document.getElementById("counterKriInput");
                 var Ok = document.getElementById("counterKriOk");
                 var Cancel = document.getElementById("counterKriCancel");
 
-                autocomplete(inputtext, results.entities).then(() => {
+                autocomplete(inputtext, results.value).then(() => {
                     Ok.onclick = function () {
                         closeDialog(entitySelectDiag).then(() => {
                             setTimeout(function () {
@@ -105,11 +99,10 @@ var pluralName = "";
                     entitySelectDiag.open = true;
 
                 });
-            },
-            function (error) {
-                Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: error });
-            }
-        );
+            });
+            // function (error) {
+            //     Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: error });
+            // }
     }
     window.Dynamics365 = Dynamics365;
 })();
