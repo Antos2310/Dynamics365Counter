@@ -33,7 +33,7 @@ var pluralName = "";
                                 if (entName === null || entName === "") return;
                                 fet = prompt("enter filter criteria", "Ex: filter=customertypecode eq 1");
                                 if (entName === null || fet === null) return;
-                                getCount("", Xrm).then(() => { });
+                                getCount("", Xrm);
                             }, 200);
                         });
                     };
@@ -109,13 +109,17 @@ var pluralName = "";
 
 window.addEventListener('message', function (event) {
     if (event.data.type) {
-        var orgUniqueName = Xrm.Page.context.getOrgUniqueName();
-        var contentPanels = Array.from(document.querySelectorAll('iframe')).filter(function (d) {
+        var contentWindows = Array.from(document.querySelectorAll('iframe')).filter(function (d) {
             return d.style.visibility !== 'hidden'
         });
 
-        if (contentPanels && contentPanels.length > 0) {
-            Dynamics365.formWindow = contentPanels[0].contentWindow;
+        if (event.source.Xrm.Internal.isUci && Xrm.Internal.isUci()) {
+            Dynamics365.formWindow = window;
+            Dynamics365.Xrm = window.Xrm;
+            Dynamics365.clientUrl = Dynamics365.Xrm.Page.context.getClientUrl();
+        }
+        else if (contentWindows && contentWindows.length > 0) {
+            Dynamics365.formWindow = contentWindows[0].contentWindow;
             Dynamics365.Xrm = Dynamics365.formWindow.Xrm;
             Dynamics365.clientUrl = Dynamics365.Xrm.Page.context.getClientUrl();
         }
@@ -317,6 +321,8 @@ function closeDialog(entitySelectDiag) {
         resolve();
     })
 }
+
+//https://www.w3schools.com/howto/howto_js_autocomplete.asp
 function autocomplete(inp, arr) {
 
     return new Promise((resolve, reject) => {
