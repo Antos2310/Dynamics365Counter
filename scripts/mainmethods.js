@@ -16,14 +16,14 @@ var pluralName = "";
         count = 0;
 
         createDailog();
-        
-            Send_Request("EntityDefinitions?$select=LogicalName", true, 'GET', null,
-                function (results) {
+
+        Send_Request("EntityDefinitions?$select=LogicalName", true, 'GET', null,
+            function (results) {
                 var entitySelectDiag = document.getElementById("counterKriDialog");
                 var inputtext = document.getElementById("counterKriInput");
                 var Ok = document.getElementById("counterKriOk");
                 var Cancel = document.getElementById("counterKriCancel");
-
+                
                 autocomplete(inputtext, results.value).then(() => {
                     Ok.onclick = function () {
                         closeDialog(entitySelectDiag).then(() => {
@@ -38,8 +38,9 @@ var pluralName = "";
                         });
                     };
 
-                    document.getElementById("counterKriInput").select();
-                    entitySelectDiag.open = true;
+                   
+                    entitySelectDiag.showModal();
+                    entitySelectDiag.click();
 
                 });
             });
@@ -51,7 +52,7 @@ var pluralName = "";
         createDailog();
 
         Send_Request("EntityDefinitions?$select=LogicalName", true, 'GET', null,
-                function (results) {
+            function (results) {
                 var entitySelectDiag = document.getElementById("counterKriDialog");
                 var inputtext = document.getElementById("counterKriInput");
                 var Ok = document.getElementById("counterKriOk");
@@ -61,50 +62,64 @@ var pluralName = "";
                     Ok.onclick = function () {
                         closeDialog(entitySelectDiag).then(() => {
                             setTimeout(function () {
-                                entName = inputtext.value;
-                                document.body.removeChild(entitySelectDiag);
-                                if (entName === null || entName === "") return;
+                                try {
+                                    entName = inputtext.value;
+                                    document.body.removeChild(entitySelectDiag);
+                                    if (entName === null || entName === "") return;
 
-                                Originalfet = fet = prompt("enter fetch xml", "Ex: Can be downloaded from advanced find");
-                                if (entName === null || fet === null) return;
+                                    Originalfet = fet = prompt("enter fetch xml", "Ex: Can be downloaded from advanced find");
+                                    if (entName === null || fet === null) return;
 
-                                pluralName = Send_Request("EntityDefinitions?$select=LogicalCollectionName&$filter=LogicalName eq '" + entName + "'", false, 'GET', null).value[0].LogicalCollectionName;
-                                var parser = new DOMParser();
-                                xmlDoc = parser.parseFromString(fet, "text/xml");
-                                console.log("removing other attributes and adding id column");
-                                var removeAttributes = xmlDoc.getElementsByTagName("attribute");
-                                var iteration = removeAttributes.length;
-                                for (i = 0; i < iteration; i++) {
-                                    removeAttributes[0].remove();
+                                    try
+                                    {    
+                                       pluralName = Send_Request("EntityDefinitions?$select=LogicalCollectionName&$filter=LogicalName eq '" + entName + "'", false, 'GET', null).value[0].LogicalCollectionName;
+                                    }
+                                    catch(err)
+                                    {
+                                        Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: "Selected Entity Name "+entName+" not found. " });
+                                        return;
+                                    }
+                                    
+                                    var parser = new DOMParser();
+                                    xmlDoc = parser.parseFromString(fet, "text/xml");
+                                    console.log("removing other attributes and adding id column");
+                                    var removeAttributes = xmlDoc.getElementsByTagName("attribute");
+                                    var iteration = removeAttributes.length;
+                                    for (i = 0; i < iteration; i++) {
+                                        removeAttributes[0].remove();
+                                    }
+
+                                    var removeOrderby = xmlDoc.getElementsByTagName("order");
+                                    var orderByIteration = removeOrderby.length;
+                                    for (i = 0; i < orderByIteration; i++) {
+                                        removeOrderby[0].remove();
+                                    }
+
+                                    var addAttributes = xmlDoc.getElementsByTagName("entity");
+                                    var newEle = xmlDoc.createElement("attribute");
+                                    addAttributes[0].appendChild(newEle);
+                                    newEle.setAttribute("name", entName + "id");
+                                    fet = xmlDoc.getElementsByTagName("fetch")[0].outerHTML;
+
+                                    countsAppend("");
                                 }
-
-                                var removeOrderby = xmlDoc.getElementsByTagName("order");
-                                var orderByIteration = removeOrderby.length;
-                                for (i = 0; i < orderByIteration; i++) {
-                                    removeOrderby[0].remove();
+                                catch (error) {
+                                    Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: error.message });
                                 }
-
-                                var addAttributes = xmlDoc.getElementsByTagName("entity");
-                                var newEle = xmlDoc.createElement("attribute");
-                                addAttributes[0].appendChild(newEle);
-                                newEle.setAttribute("name", entName + "id");
-                                fet = xmlDoc.getElementsByTagName("fetch")[0].outerHTML;
-
-                                countsAppend("");
                             }, 200);
                         });
                     };
 
-                    document.getElementById("counterKriInput").select();
-                    entitySelectDiag.open = true;
+                    
+                    entitySelectDiag.showModal();
+                    entitySelectDiag.click();
 
                 });
             });
-            // function (error) {
-            //     Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: error });
-            // }
     }
+
     window.Dynamics365 = Dynamics365;
+
 })();
 
 window.addEventListener('message', function (event) {
@@ -150,7 +165,7 @@ function getCount(nextLink, Xrm) {
 
             },
                 function (error) {
-                    console.log(error.message);
+                    Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: error.message });
                 });
         }
         else {
@@ -169,8 +184,7 @@ function getCount(nextLink, Xrm) {
 
             },
                 function (error) {
-                    console.log(error.message);
-
+                    Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: error.message });
                 });
         }
 
@@ -213,6 +227,9 @@ function Send_Request(parameters, async, method = 'GET', data, callback, isEscap
                     var result = JSON.parse(req.response);
                     callback(result);
                 }
+                else {
+                    Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: JSON.parse(req.response).error.message });
+                }
             }
         }
     }
@@ -222,64 +239,70 @@ function Send_Request(parameters, async, method = 'GET', data, callback, isEscap
                 var result = JSON.parse(req.response);
                 return result;
             }
-
+            else {
+                Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: JSON.parse(req.response).error.message });
+            }
         }
     }
 }
 
 function countsAppend(pagingCookie) {
 
-    var parserXML = new DOMParser();
-    if (pagingCookie !== "") {
+    try {
+        var parserXML = new DOMParser();
+        if (pagingCookie !== "") {
 
-        var xmlDocCookie = parserXML.parseFromString(Originalfet, "text/xml");
-        var removeAttributes = xmlDocCookie.getElementsByTagName("attribute");
-        var iteration = removeAttributes.length;
-        for (i = 0; i < iteration; i++) {
-            removeAttributes[0].remove();
+            var xmlDocCookie = parserXML.parseFromString(Originalfet, "text/xml");
+            var removeAttributes = xmlDocCookie.getElementsByTagName("attribute");
+            var iteration = removeAttributes.length;
+            for (i = 0; i < iteration; i++) {
+                removeAttributes[0].remove();
+            }
+
+            var removeOrderby = xmlDocCookie.getElementsByTagName("order");
+            var orderByIteration = removeOrderby.length;
+            for (i = 0; i < orderByIteration; i++) {
+                removeOrderby[0].remove();
+            }
+
+            var addAttributes = xmlDocCookie.getElementsByTagName("entity");
+            var newEle = xmlDocCookie.createElement("attribute");
+            addAttributes[0].appendChild(newEle);
+            newEle.setAttribute("name", entName + "id");
+            var xmlDocEnc = parserXML.parseFromString(pagingCookie, "text/xml");
+            var cookieDoc = parserXML.parseFromString(decodeURIComponent(decodeURIComponent(xmlDocEnc.getElementsByTagName("cookie")[0].attributes.pagingcookie.value)), "text/xml");
+            var lastResult = cookieDoc.getElementsByTagName(entName + "id")[0].attributes.last.value;
+            var firstResult = cookieDoc.getElementsByTagName(entName + "id")[0].attributes.first.value;
+
+            var paggg = '&lt;cookie page=&quot;' + (++xmlDocEnc.getElementsByTagName("cookie")[0].attributes.pagenumber.value) + '&quot;&gt;&lt;' + entName + 'id last=&quot;' + lastResult + '&quot; first=&quot;' + firstResult + '&quot; /&gt;&lt;/cookie&gt;';
+            xmlDocCookie.getElementsByTagName("fetch")[0].setAttribute('paging-cookie', paggg);
+            xmlDocCookie.getElementsByTagName("fetch")[0].setAttribute('page', ++xmlDocEnc.getElementsByTagName("cookie")[0].attributes.pagenumber.value);
+            fet = xmlDocCookie.getElementsByTagName("fetch")[0].outerHTML;
+
+            fet = fet.split('\"').join("'");
+            fet = fet.split('&amp;').join("&");
         }
 
-        var removeOrderby = xmlDocCookie.getElementsByTagName("order");
-        var orderByIteration = removeOrderby.length;
-        for (i = 0; i < orderByIteration; i++) {
-            removeOrderby[0].remove();
-        }
 
-        var addAttributes = xmlDocCookie.getElementsByTagName("entity");
-        var newEle = xmlDocCookie.createElement("attribute");
-        addAttributes[0].appendChild(newEle);
-        newEle.setAttribute("name", entName + "id");
-        var xmlDocEnc = parserXML.parseFromString(pagingCookie, "text/xml");
-        var cookieDoc = parserXML.parseFromString(decodeURIComponent(decodeURIComponent(xmlDocEnc.getElementsByTagName("cookie")[0].attributes.pagingcookie.value)), "text/xml");
-        var lastResult = cookieDoc.getElementsByTagName(entName + "id")[0].attributes.last.value;
-        var firstResult = cookieDoc.getElementsByTagName(entName + "id")[0].attributes.first.value;
+        Send_Request(pluralName + "?fetchXml=" + encodeURIComponent(fet), true, 'GET', null, function (results) {
 
-        var paggg = '&lt;cookie page=&quot;' + (++xmlDocEnc.getElementsByTagName("cookie")[0].attributes.pagenumber.value) + '&quot;&gt;&lt;' + entName + 'id last=&quot;' + lastResult + '&quot; first=&quot;' + firstResult + '&quot; /&gt;&lt;/cookie&gt;';
-        xmlDocCookie.getElementsByTagName("fetch")[0].setAttribute('paging-cookie', paggg);
-        xmlDocCookie.getElementsByTagName("fetch")[0].setAttribute('page', ++xmlDocEnc.getElementsByTagName("cookie")[0].attributes.pagenumber.value);
-        fet = xmlDocCookie.getElementsByTagName("fetch")[0].outerHTML;
+            count += results.value.length;
+            Xrm.Utility.showProgressIndicator(entName + " Count: " + count);
+            if (results["@Microsoft.Dynamics.CRM.fetchxmlpagingcookie"] === undefined) {
+                Xrm.Utility.closeProgressIndicator();
+                setTimeout(function () { alert(entName + " Final Count :" + count); }, 200);
+            }
+            else {
+                var cookie = results["@Microsoft.Dynamics.CRM.fetchxmlpagingcookie"];
+                countsAppend(cookie);
+            }
 
-        fet = fet.split('\"').join("'");
-        fet = fet.split('&amp;').join("&");
+        });
     }
-
-
-    Send_Request(pluralName + "?fetchXml=" + encodeURIComponent(fet), true, 'GET', null, function (results) {
-
-        count += results.value.length;
-        Xrm.Utility.showProgressIndicator(entName + " Count: " + count);
-        if (results["@Microsoft.Dynamics.CRM.fetchxmlpagingcookie"] === undefined) {
-            Xrm.Utility.closeProgressIndicator();
-            setTimeout(function () { alert(entName + " Final Count :" + count); }, 200);
-        }
-        else {
-            var cookie = results["@Microsoft.Dynamics.CRM.fetchxmlpagingcookie"];
-            countsAppend(cookie);
-        }
-
-    });
-
-
+    catch(error)
+    {
+        throw error;
+    }
 }
 
 
@@ -287,8 +310,13 @@ function createDailog() {
     var entitySelectDiag = document.createElement("DIALOG");
     entitySelectDiag.id = "counterKriDialog";
     entitySelectDiag.className = "counterKriDialog";
-    entitySelectDiag.innerHTML = "Select Entity Name";
+    
 
+    var spantext = document.createElement("span");
+    spantext.setAttribute("id", "counterKriSpan");
+    spantext.className = "counterKriSpan";
+    spantext.innerHTML = "Select Entity Name";
+    entitySelectDiag.appendChild(spantext);
 
     var inputtext = document.createElement("input");
     inputtext.setAttribute("id", "counterKriInput");
@@ -309,10 +337,27 @@ function createDailog() {
         entitySelectDiag.open = false;
         document.body.removeChild(entitySelectDiag);
     };
+
     entitySelectDiag.appendChild(Ok);
     entitySelectDiag.appendChild(Cancel);
-    document.body.appendChild(entitySelectDiag);
 
+    inputtext.addEventListener("keyup", function (event) {
+        // Number 13 is the "Enter" key on the keyboard
+        if (event.keyCode === 13) {
+
+            event.preventDefault();
+            // Trigger the button element with a click
+            document.getElementById("counterKriOk").click();
+        }
+        if (event.keyCode === 27) {
+
+            event.preventDefault();
+            // Trigger the button element with a click
+            document.getElementById("counterKriCancel").click();
+        }
+    });
+
+    document.body.appendChild(entitySelectDiag);
 }
 
 function closeDialog(entitySelectDiag) {
@@ -329,6 +374,7 @@ function autocomplete(inp, arr) {
         /*the autocomplete function takes two arguments,
         the text field element and an array of possible autocompleted values:*/
         var currentFocus;
+        inp.select();
         /*execute a function when someone writes in the text field:*/
         inp.addEventListener("input", function (e) {
             var a, b, i, val = this.value;
