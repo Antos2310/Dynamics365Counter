@@ -5,4 +5,5 @@ document.getElementById('crmCounterLinks').addEventListener('click',function(e){
       type:e.target.id
   });
   window.close();
+  
 }, false);
