@@ -1,47 +1,123 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Count it!</title>
-    <style>
+
+<head>
+  <title>Count it!</title>
+  <style>
     body {
-            min-width:130px;
-            font-family: "Segoe UI" , "Segoe" , Tahoma, Helvetica, Arial, sans-serif;
-            font-size: 14px;
-        }
-        .container{
-            display: -webkit-flex;
-            display: flex;
-            -webkit-flex-direction: row;
-            flex-direction: row;
-            -webkit-flex-flow: row wrap;
-            flex-flow: row wrap;
-            width: 100%;
-        }
-        .links{
-            padding: 10px;
-            background: #00008b;
-            color: white;
-            margin: 5px;
-            text-align: center;
-            width: inherit;
-        }
-        .links:hover{
-            cursor: pointer;
-            background: rgb(192, 47, 47);
-        }
-        .section{
-            font-size: 16px;
-            font-weight: 600;
-        }
-    </style>
-  </head>
-  <body>
-    <div id="crmCounterLinks" >
-      <div class="container">
-        <div class="links" id="WebApi">OData</div>
-        <div class="links" id="FetchXml">Fetch XML</div>
-      </div>
-  </div>   
-  <script src="popup.js"></script>    
-  </body>
+      min-width: 130px;
+      font-family: "Segoe UI", "Segoe", Tahoma, Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      width: 300px;
+      height: 120px;
+    }
+
+    .container {
+      display: -webkit-flex;
+      display: flex;
+      -webkit-flex-direction: row;
+      flex-direction: row;
+      -webkit-flex-flow: row wrap;
+      flex-flow: row wrap;
+      width: 100%;
+      margin-top: 5%;
+    }
+
+    .links {
+      padding: 10px;
+      background: #00008b;
+      color: white;
+      margin: 5px;
+      text-align: center;
+      width: inherit;
+    }
+
+    .linksdisabled {
+      padding: 10px;
+      background: #00008b;
+      color: white;
+      margin: 5px;
+      text-align: center;
+      width: inherit;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .links:hover {
+      cursor: pointer;
+      background: rgb(192, 47, 47);
+    }
+
+    .section {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .tab {
+      overflow: hidden;
+      border-bottom: 1px solid #ccc;
+      background-color: #f1f1f1;
+    }
+
+    /* Style the buttons that are used to open the tab content */
+    .tab button {
+      background-color: inherit;
+      float: left;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 14px 35px;
+      transition: 0.3s;
+    }
+
+    /* Change background color of buttons on hover */
+    .tab button:hover {
+      background-color: #ddd;
+    }
+
+    /* Create an active/current tablink class */
+    .tab button.active {
+      background-color: #ccc;
+    }
+
+    .tabcontent {
+      display: none;
+      padding: 6px 12px;
+      border-top: none;
+    }
+
+    .ahref {
+      font-weight: bold;
+      font-size: 8px;
+      background-color: inherit;
+      float: left;
+      cursor: pointer;
+      padding: 14px 16px;
+      transition: 0.3s;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="crmRecordTabs" class="tab">
+    <button id="CounterTabs" class="tablinks">Counter</button>
+    <button id="MetadataTabs" class="tablinks">Tools</button>
+    <a target="_blank" class="ahref" href="https://github.com/Antos2310/Dynamics365Counter/issues/new">Report Issue</a>
+  </div>
+  <div id="crmCounterLinks" class="tabcontent">
+    <div class="container">
+      <div class="links" id="WebApi">OData</div>
+      <div class="links" id="FetchXml">Fetch XML</div>
+    </div>
+  </div>
+  <div id="crmMetadataBrowser" class="tabcontent">
+    <div class="container">
+      <div class="links" id="Metadata">Metadata Browser</div>
+      <div class="links" id="PluginSteps">Plugin Steps</div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+
 </html>
