@@ -23,7 +23,7 @@ var pluralName = "";
                 var inputtext = document.getElementById("counterKriInput");
                 var Ok = document.getElementById("counterKriOk");
                 var Cancel = document.getElementById("counterKriCancel");
-                
+
                 autocomplete(inputtext, results.value).then(() => {
                     Ok.onclick = function () {
                         closeDialog(entitySelectDiag).then(() => {
@@ -38,7 +38,7 @@ var pluralName = "";
                         });
                     };
 
-                   
+
                     entitySelectDiag.showModal();
                     entitySelectDiag.click();
 
@@ -70,36 +70,40 @@ var pluralName = "";
                                     Originalfet = fet = prompt("enter fetch xml", "Ex: Can be downloaded from advanced find");
                                     if (entName === null || fet === null) return;
 
-                                    try
-                                    {    
-                                       pluralName = Send_Request("EntityDefinitions?$select=LogicalCollectionName&$filter=LogicalName eq '" + entName + "'", false, 'GET', null).value[0].LogicalCollectionName;
+                                    try {
+                                        pluralName = Send_Request("EntityDefinitions?$select=LogicalCollectionName&$filter=LogicalName eq '" + entName + "'", false, 'GET', null).value[0].LogicalCollectionName;
                                     }
-                                    catch(err)
-                                    {
-                                        Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: "Selected Entity Name "+entName+" not found. " });
+                                    catch (err) {
+                                        Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: "Selected Entity Name " + entName + " not found. " });
                                         return;
                                     }
-                                    
-                                    var parser = new DOMParser();
-                                    xmlDoc = parser.parseFromString(fet, "text/xml");
-                                    console.log("removing other attributes and adding id column");
-                                    var removeAttributes = xmlDoc.getElementsByTagName("attribute");
-                                    var iteration = removeAttributes.length;
-                                    for (i = 0; i < iteration; i++) {
-                                        removeAttributes[0].remove();
-                                    }
 
-                                    var removeOrderby = xmlDoc.getElementsByTagName("order");
-                                    var orderByIteration = removeOrderby.length;
-                                    for (i = 0; i < orderByIteration; i++) {
-                                        removeOrderby[0].remove();
-                                    }
+                                    try {
+                                        var parser = new DOMParser();
+                                        xmlDoc = parser.parseFromString(fet, "text/xml");
+                                        console.log("removing other attributes and adding id column");
+                                        var removeAttributes = xmlDoc.getElementsByTagName("attribute");
+                                        var iteration = removeAttributes.length;
+                                        for (i = 0; i < iteration; i++) {
+                                            removeAttributes[0].remove();
+                                        }
 
-                                    var addAttributes = xmlDoc.getElementsByTagName("entity");
-                                    var newEle = xmlDoc.createElement("attribute");
-                                    addAttributes[0].appendChild(newEle);
-                                    newEle.setAttribute("name", entName + "id");
-                                    fet = xmlDoc.getElementsByTagName("fetch")[0].outerHTML;
+                                        var removeOrderby = xmlDoc.getElementsByTagName("order");
+                                        var orderByIteration = removeOrderby.length;
+                                        for (i = 0; i < orderByIteration; i++) {
+                                            removeOrderby[0].remove();
+                                        }
+
+                                        var addAttributes = xmlDoc.getElementsByTagName("entity");
+                                        var newEle = xmlDoc.createElement("attribute");
+                                        addAttributes[0].appendChild(newEle);
+                                        newEle.setAttribute("name", entName + "id");
+                                        fet = xmlDoc.getElementsByTagName("fetch")[0].outerHTML;
+                                    }
+                                    catch (err) {
+                                        Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: "Error with the fetch xml. Please validate. " });
+                                        return;
+                                    }
 
                                     countsAppend("");
                                 }
@@ -110,20 +114,86 @@ var pluralName = "";
                         });
                     };
 
-                    
+
                     entitySelectDiag.showModal();
                     entitySelectDiag.click();
 
                 });
             });
+    };
+
+    Dynamics365.Metadata = function (formWindow, Xrm) {
+
+        var alertStrings = { confirmButtonLabel: "Ok", text: "System Administrator role is required to browse metadata and form events. ", title: "User Role Alert" };
+        var alertOptions = { height: 120, width: 260 };
+        Xrm.Navigation.openAlertDialog(alertStrings).then(
+            function success(result) {
+                var extensionMessage = {
+                    type: Xrm.Page.context.getClientUrl(),
+                    category: 'WebPage',
+                    content: 'WebPage',
+                  };
+              
+                  var createLinkEvent = new CustomEvent('createlink', {
+                    detail: extensionMessage,
+                  });
+                  createLinkEvent.initEvent('createlink', false, false);
+                  document.dispatchEvent(createLinkEvent);
+            },
+            function (error) {
+                console.log(error.message);
+            }
+        );
+        
+        
+    };
+
+    
+    Dynamics365.PluginSteps = function (formWindow, Xrm) {
+
+        var alertStrings = { confirmButtonLabel: "Ok", text: "System Administrator role is required to browse metadata and form events. ", title: "User Role Alert" };
+        var alertOptions = { height: 120, width: 260 };
+        Xrm.Navigation.openAlertDialog(alertStrings).then(
+            function success(result) {
+                var extensionMessage = {
+                    type: Xrm.Page.context.getClientUrl(),
+                    category: 'WebPage',
+                    content: 'PluginSteps',
+                  };
+              
+                  var createLinkEvent = new CustomEvent('createlink', {
+                    detail: extensionMessage,
+                  });
+                  createLinkEvent.initEvent('createlink', false, false);
+                  document.dispatchEvent(createLinkEvent);
+            },
+            function (error) {
+                console.log(error.message);
+            }
+        );
+        
+        
+    };
+    
+    Dynamics365.FetchAttributes = function(formWindow, Xrm)
+    {
+        Send_Request("EntityDefinitions?$select=LogicalName", true, 'GET', null,
+            function (results) {return});
     }
 
+    Dynamics365.RoleAlert = function(formWindow, Xrm)
+    {
+        var alertStrings = { confirmButtonLabel: "Ok", text: "System Administrator role is required to browse metadata and form events. ", title: "User Role Alert" };
+        var alertOptions = { height: 120, width: 260 };
+		Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+    }
     window.Dynamics365 = Dynamics365;
 
 })();
 
 window.addEventListener('message', function (event) {
-    if (event.data.type) {
+    if (event.data.type && (event.data.type === 'WebApi' || event.data.type === 'FetchXml' || event.data.type === 'Metadata'
+    || event.data.type === 'PluginSteps')) {
         var contentWindows = Array.from(document.querySelectorAll('iframe')).filter(function (d) {
             return d.style.visibility !== 'hidden'
         });
@@ -131,16 +201,20 @@ window.addEventListener('message', function (event) {
         if (event.source.Xrm.Internal.isUci && Xrm.Internal.isUci()) {
             Dynamics365.formWindow = window;
             Dynamics365.Xrm = window.Xrm;
+            window._xrm =  window.Xrm;
             Dynamics365.clientUrl = Dynamics365.Xrm.Page.context.getClientUrl();
         }
         else if (contentWindows && contentWindows.length > 0) {
             Dynamics365.formWindow = contentWindows[0].contentWindow;
             Dynamics365.Xrm = Dynamics365.formWindow.Xrm;
+            window._xrm =  Dynamics365.formWindow.Xrm;
             Dynamics365.clientUrl = Dynamics365.Xrm.Page.context.getClientUrl();
         }
         Dynamics365[event.data.type](Dynamics365.formWindow, Dynamics365.Xrm);
     }
 });
+
+
 
 function getCount(nextLink, Xrm) {
 
@@ -299,18 +373,38 @@ function countsAppend(pagingCookie) {
 
         });
     }
-    catch(error)
-    {
+    catch (error) {
         throw error;
     }
 }
 
+function createAttrDailog() {
+    var entityAttrDiag = document.createElement("DIALOG");
+    entityAttrDiag.id = "counterAttrDialog";
+    entityAttrDiag.className = "counterAttrDialog";
 
+    document.body.appendChild(entityAttrDiag);
+
+        var extensionMessage = {
+            type: 'getHtml',
+            category: 'getHtml',
+            content: 'getHtml',
+          };
+      
+          var createLinkEvent = new CustomEvent('getHtml', {
+            detail: extensionMessage,
+          });
+          createLinkEvent.initEvent('getHtml', false, false);
+          document.dispatchEvent(createLinkEvent);
+
+          entityAttrDiag.showModal();
+          entityAttrDiag.click();
+}
 function createDailog() {
     var entitySelectDiag = document.createElement("DIALOG");
     entitySelectDiag.id = "counterKriDialog";
     entitySelectDiag.className = "counterKriDialog";
-    
+
 
     var spantext = document.createElement("span");
     spantext.setAttribute("id", "counterKriSpan");
@@ -334,7 +428,7 @@ function createDailog() {
     Cancel.innerHTML = "Cancel";
     Cancel.className = "counterKriCancel";
     Cancel.onclick = function () {
-        entitySelectDiag.open = false;
+        entitySelectDiag.close();
         document.body.removeChild(entitySelectDiag);
     };
 
@@ -362,7 +456,7 @@ function createDailog() {
 
 function closeDialog(entitySelectDiag) {
     return new Promise((resolve, reject) => {
-        entitySelectDiag.open = false;
+        entitySelectDiag.close();
         resolve();
     })
 }
