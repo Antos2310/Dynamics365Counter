@@ -1,12 +1,12 @@
-WARNING: This uses the CRM internal methods to copy, paste and to get the Fecth XML for the count.
+WARNING: This uses the CRM internal methods to copy, paste and to get the Fetch XML for the count.
 
-Step 1 : Open an advanced find window and right on the tab and select Show as Tab to use these new tools.
+Step 1 : Open an Advanced find window and right click on the tab and select Show as Tab to use these new tools.
 
 ![ScreenShot](https://github.com/Antos2310/Dynamics365Counter/blob/master/img/ShowasTab.png)
 
 Options Available:
 
-1) Copy FetchXML : This copies the Fetch XML directly without the need to click the download button
+1) Copy FetchXML : This copies the Fetch XML directly without the need to click the Download Fetch XML button
 
 ![ScreenShot](https://github.com/Antos2310/Dynamics365Counter/blob/master/img/AdvTools.png)
 
