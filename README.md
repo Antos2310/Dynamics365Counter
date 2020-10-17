@@ -1,5 +1,7 @@
 # Dynamics365Counter
 Dynamics 365 Web Api based counter for both Odata query and Fetch XML based. Client side counter.
+Retrieve Total Record Count.
+Get Counts directly from the advanced find window. Copy and Paste Fetch XMLs directly into advanced find window.
 
 
 v2.1.0 - Tools Added for Metadata Browser and Plugin Steps Viewer
