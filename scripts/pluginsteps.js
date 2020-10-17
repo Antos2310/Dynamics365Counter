@@ -1,5 +1,5 @@
 var Xrm;
-var app = angular.module('pluginStepsApp', ['ngMaterial','ui.bootstrap']);
+var app = angular.module('pluginStepsApp', ['ngMaterial', 'ui.bootstrap']);
 
 
 app.controller('pluginStepsCtrl',
@@ -14,7 +14,7 @@ app.controller('pluginStepsCtrl',
         $scope.jsonval = '';
         $scope.currentmatch = '';
         $scope.currentId = '';
-        $scope.orgName ='';
+        $scope.orgName = '';
 
         $scope.currentPage = 1;
         $scope.numPerPage = 10;
@@ -25,6 +25,10 @@ app.controller('pluginStepsCtrl',
             chrome.runtime.sendMessage({
                 type: 'GetXrm'
             }, function (_xrm) {
+
+                if (_xrm == null)
+                    window.close();
+
                 Xrm = _xrm;
 
                 var oDataUrl = _xrm + '/api/data/v9.1/';
@@ -48,34 +52,26 @@ app.controller('pluginStepsCtrl',
                                 if (response !== null && response.data !== null && response.data.systemuserroles_association !== null
                                     && response.data.systemuserroles_association.length > 0) {
 
-                                        $http(
-                                            {
-                                                method: 'GET',
-                                                url: oDataUrl +
-                                                    'RetrieveCurrentOrganization(AccessType=\'Default\')'
-    
-                                            })
-                                            .then(function successCallback(response) {
-                                                $scope.orgName = response.data.Detail.FriendlyName;
-                                            });
-                                    
+                                    $http(
+                                        {
+                                            method: 'GET',
+                                            url: oDataUrl +
+                                                'RetrieveCurrentOrganization(AccessType=\'Default\')'
+
+                                        })
+                                        .then(function successCallback(response) {
+                                            $scope.orgName = response.data.Detail.FriendlyName;
+                                        });
+
                                     $scope.inputChanged();
                                     console.log("opened! ");
 
                                 }
                                 else {
-                                    chrome.runtime.sendMessage({
-                                        type: 'RoleAlert'
-                                    }, function () {
                                         window.close();
-                                    });
                                 }
                             }, function errorCallback(response) {
-                                chrome.runtime.sendMessage({
-                                    type: 'RoleAlert'
-                                }, function () {
                                     window.close();
-                                });
                             });
 
                     });
@@ -104,9 +100,9 @@ app.controller('pluginStepsCtrl',
                                     {
                                         method: 'GET',
                                         url: oDataUrl +
-                                            'sdkmessages('+element._sdkmessageid_value+')?$select=categoryname&'+
-                                            '$expand=sdkmessageid_sdkmessagefilter($filter=sdkmessagefilterid eq '+element._sdkmessagefilterid_value+';$select=primaryobjecttypecode)'
-                
+                                            'sdkmessages(' + element._sdkmessageid_value + ')?$select=categoryname&' +
+                                            '$expand=sdkmessageid_sdkmessagefilter($filter=sdkmessagefilterid eq ' + element._sdkmessagefilterid_value + ';$select=primaryobjecttypecode)'
+
                                     })
                                     .then(function successCallback(response) {
 

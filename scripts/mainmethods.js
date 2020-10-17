@@ -15,7 +15,7 @@ var pluralName = "";
     Dynamics365.WebApi = function (formWindow, Xrm) {
         count = 0;
 
-        createDailog();
+        createDialog();
 
         Send_Request("EntityDefinitions?$select=LogicalName", true, 'GET', null,
             function (results) {
@@ -33,6 +33,19 @@ var pluralName = "";
                                 if (entName === null || entName === "") return;
                                 fet = prompt("enter filter criteria", "Ex: filter=customertypecode eq 1");
                                 if (entName === null || fet === null) return;
+
+                                try {
+                                    var entDefResponse = Send_Request("EntityDefinitions?$select=LogicalCollectionName,IsActivity&$filter=LogicalName eq '" + entName + "'", false, 'GET', null);
+                                    pluralName = entDefResponse.value[0].LogicalCollectionName;
+                                    
+                                    if(entDefResponse.value[0].IsActivity)
+                                      entName = "activity";
+                                }
+                                catch (err) {
+                                    Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: "Selected Entity Name " + entName + " not found. " });
+                                    return;
+                                }
+                                
                                 getCount("", Xrm);
                             }, 200);
                         });
@@ -49,7 +62,7 @@ var pluralName = "";
         count = 0;
 
 
-        createDailog();
+        createDialog();
 
         Send_Request("EntityDefinitions?$select=LogicalName", true, 'GET', null,
             function (results) {
@@ -71,7 +84,11 @@ var pluralName = "";
                                     if (entName === null || fet === null) return;
 
                                     try {
-                                        pluralName = Send_Request("EntityDefinitions?$select=LogicalCollectionName&$filter=LogicalName eq '" + entName + "'", false, 'GET', null).value[0].LogicalCollectionName;
+                                        var entDefResponse = Send_Request("EntityDefinitions?$select=LogicalCollectionName,IsActivity&$filter=LogicalName eq '" + entName + "'", false, 'GET', null);
+                                        pluralName = entDefResponse.value[0].LogicalCollectionName;
+
+                                        if(entDefResponse.value[0].IsActivity)
+                                          entName = "activity";
                                     }
                                     catch (err) {
                                         Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: "Selected Entity Name " + entName + " not found. " });
@@ -174,6 +191,133 @@ var pluralName = "";
         
         
     };
+
+    Dynamics365.TotalCount = function (formWindow, Xrm) {
+
+        createDialog();
+
+        Send_Request("EntityDefinitions?$select=LogicalName", true, 'GET', null,
+            function (results) {
+                var entitySelectDiag = document.getElementById("counterKriDialog");
+                var inputtext = document.getElementById("counterKriInput");
+                var Ok = document.getElementById("counterKriOk");
+                var Cancel = document.getElementById("counterKriCancel");
+
+                autocomplete(inputtext, results.value).then(() => {
+                    Ok.onclick = function () {
+                        closeDialog(entitySelectDiag).then(() => {
+                            setTimeout(function () {
+                                entName = inputtext.value;
+                                document.body.removeChild(entitySelectDiag);
+                                if (entName === null || entName === "") return;
+ 
+
+                                try {
+                                    var entDefResponse = Send_Request("EntityDefinitions?$select=LogicalCollectionName,IsActivity&$filter=LogicalName eq '" + entName + "'", false, 'GET', null);
+                                    pluralName = entDefResponse.value[0].LogicalCollectionName;
+                                }
+                                catch (err) {
+                                    Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: "Selected Entity Name " + entName + " not found. " });
+                                    return;
+                                }
+                                Xrm.Utility.showProgressIndicator("Getting Total Count: ");
+                                var getTotalRecordCount = Send_Request("RetrieveTotalRecordCount(EntityNames=['"+entName+"'])", false, 'GET', null);
+                                Xrm.Utility.closeProgressIndicator();
+                                setTimeout(function () { alert(entName + " Total Count :" + getTotalRecordCount.EntityRecordCountCollection.Values[0]); }, 200);
+
+                            }, 200);
+                        });
+                    };
+
+
+                    entitySelectDiag.showModal();
+                    entitySelectDiag.click();
+
+                });
+            });
+
+    }
+
+    Dynamics365.CopyFetch = function (formWindow, Xrm) {
+
+    var fetch = formWindow.$find("advFind").get_fetchXml();
+    
+    var copyElement = document.createElement("input");
+    document.body.appendChild(copyElement);
+    copyElement.setAttribute("id", "copyElement_id");
+    document.getElementById("copyElement_id").value= fetch;
+    copyElement.select();
+    document.execCommand("copy");
+    document.body.removeChild(copyElement);
+  
+
+    alert("Fetch XML Copied!");
+    }
+
+    Dynamics365.PasteFetch = function (formWindow, Xrm) {
+        var pasteFetch = prompt("enter fetch to paste.");
+        if (pasteFetch === null) return;
+
+        formWindow.$find("advFind").Clear();
+        formWindow.$find("advFind").set_fetchXml(pasteFetch); 
+    }
+
+    Dynamics365.GetCount = function (formWindow, Xrm) {
+        count = 0;
+        Originalfet = fet = formWindow.$find("advFind").get_fetchXml();
+        try {
+                var parseFet = new DOMParser();
+                var fetDoc = parseFet.parseFromString(fet, "text/xml");
+                entName = fetDoc.getElementsByTagName("entity")[0].getAttribute("name");
+
+
+            if (entName === null || entName === "" || fet === null) return;
+
+            try {
+                var entDefResponse = Send_Request("EntityDefinitions?$select=LogicalCollectionName,IsActivity&$filter=LogicalName eq '" + entName + "'", false, 'GET', null);
+                pluralName = entDefResponse.value[0].LogicalCollectionName;
+
+                if(entDefResponse.value[0].IsActivity)
+                  entName = "activity";
+            }
+            catch (err) {
+                Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: "Selected Entity Name " + entName + " not found. " });
+                return;
+            }
+
+            try {
+                var parser = new DOMParser();
+                xmlDoc = parser.parseFromString(fet, "text/xml");
+                console.log("removing other attributes and adding id column");
+                var removeAttributes = xmlDoc.getElementsByTagName("attribute");
+                var iteration = removeAttributes.length;
+                for (i = 0; i < iteration; i++) {
+                    removeAttributes[0].remove();
+                }
+
+                var removeOrderby = xmlDoc.getElementsByTagName("order");
+                var orderByIteration = removeOrderby.length;
+                for (i = 0; i < orderByIteration; i++) {
+                    removeOrderby[0].remove();
+                }
+
+                var addAttributes = xmlDoc.getElementsByTagName("entity");
+                var newEle = xmlDoc.createElement("attribute");
+                addAttributes[0].appendChild(newEle);
+                newEle.setAttribute("name", entName + "id");
+                fet = xmlDoc.getElementsByTagName("fetch")[0].outerHTML;
+            }
+            catch (err) {
+                Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: "Error with the fetch xml. Please validate. " });
+                return;
+            }
+
+            countsAppend("");
+        }
+        catch (error) {
+            Xrm.Navigation.openAlertDialog({ confirmButtonLabel: "OK", text: error.message });
+        }
+    }
     
     Dynamics365.FetchAttributes = function(formWindow, Xrm)
     {
@@ -192,8 +336,8 @@ var pluralName = "";
 })();
 
 window.addEventListener('message', function (event) {
-    if (event.data.type && (event.data.type === 'WebApi' || event.data.type === 'FetchXml' || event.data.type === 'Metadata'
-    || event.data.type === 'PluginSteps')) {
+    if (event.data.type && (event.data.type === 'WebApi' || event.data.type === 'FetchXml' || event.data.type === 'TotalCount' || event.data.type === 'Metadata'
+    || event.data.type === 'PluginSteps' || event.data.type === 'CopyFetch' || event.data.type === 'PasteFetch' || event.data.type === 'GetCount')) {
         var contentWindows = Array.from(document.querySelectorAll('iframe')).filter(function (d) {
             return d.style.visibility !== 'hidden'
         });
@@ -400,7 +544,7 @@ function createAttrDailog() {
           entityAttrDiag.showModal();
           entityAttrDiag.click();
 }
-function createDailog() {
+function createDialog() {
     var entitySelectDiag = document.createElement("DIALOG");
     entitySelectDiag.id = "counterKriDialog";
     entitySelectDiag.className = "counterKriDialog";

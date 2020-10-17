@@ -3,6 +3,7 @@
 var Xrm;
 var app = angular.module('metadatBrowserApp', ['ngMaterial', 'ui.bootstrap']);
 
+
 //unique filter
 app.filter("unique", function () {
 
@@ -30,11 +31,15 @@ app.controller('metadataCtrl',
         $scope.shouldBeFocused = false;
         $scope.status = '  ';
         $scope.inputText = {};
+        $scope.inputSolution = {};
+        $scope.inputFormSolution = {};
         $scope.orgName = '';
         $scope.inputFormEntity = {};
         $scope.checkBoxItem = {};
         $scope.matches = [];
         $scope.entities = [];
+        $scope.solution = [];
+        $scope.formsolution = [];
         $scope.attributes = [];
         $scope.formdetails = [];
         $scope.formeventdetails = [];
@@ -42,7 +47,10 @@ app.controller('metadataCtrl',
         $scope.hidematches = false;
         $scope.hideattributes = false;
         $scope.showDiv = true;
-
+        $scope.showCompareDiv = true;
+        $scope.selected = undefined;
+        $scope.showPublish = false;
+        $scope.showScriptDiv = true;
 
         $scope.currentPage = 1;
         $scope.numPerPage = 10;
@@ -52,6 +60,10 @@ app.controller('metadataCtrl',
             chrome.runtime.sendMessage({
                 type: 'GetXrm'
             }, function (_xrm) {
+
+                if (_xrm == null)
+                    window.close();
+
                 $scope.isLoading = true;
                 $scope.showTabs = false;
                 Xrm = _xrm;
@@ -79,11 +91,12 @@ app.controller('metadataCtrl',
                                         {
                                             method: 'GET',
                                             url: oDataUrl +
-                                                'EntityDefinitions?$select=LogicalName,EntitySetName'
+                                                'EntityDefinitions?$select=LogicalName,EntitySetName,MetadataId'
 
                                         })
                                         .then(function successCallback(response) {
                                             $scope.entities = response.data.value;
+
                                         });
 
                                     $http(
@@ -97,23 +110,17 @@ app.controller('metadataCtrl',
                                             $scope.orgName = response.data.Detail.FriendlyName;
                                         });
 
+
+
                                     $scope.isLoading = false;
                                     $scope.showTabs = true;
 
                                 }
                                 else {
-                                    chrome.runtime.sendMessage({
-                                        type: 'RoleAlert'
-                                    }, function () {
                                         window.close();
-                                    });
                                 }
                             }, function errorCallback(response) {
-                                chrome.runtime.sendMessage({
-                                    type: 'RoleAlert'
-                                }, function () {
                                     window.close();
-                                });
                             });
 
                     });
@@ -121,8 +128,34 @@ app.controller('metadataCtrl',
             });
 
         },
-            $scope.scrollDown = function () {
-                $location.hash('containerid');
+            $scope.GetSolutionDetails = function (item, arrayElement) {
+                var oDataUrl = Xrm + '/api/data/v9.1/';
+                $http(
+                    {
+                        method: 'GET',
+                        url: oDataUrl +
+                            'solutioncomponents?$filter=componenttype eq 1 and objectid eq ' + item.MetadataId + '&$select=_solutionid_value&$expand=solutionid($select=friendlyname)'
+
+                    })
+                    .then(function successCallback(response) {
+
+                        if (arrayElement === "attr") {
+                            $scope.attributes = [];
+                            $scope.solution = response.data.value;
+                        }
+                        else {
+                            $scope.formdetails = [];
+                            $scope.formeventdetails = [];
+                            if (window.editor != null) {
+                                window.editor.setValue('');
+                                $scope.scriptName = '';
+                            }
+                            $scope.formsolution = response.data.value;
+                        }
+                    });
+            },
+            $scope.scrollDown = function (containername) {
+                $location.hash(containername);
                 $anchorScroll();
             },
             $scope.updateRecord = function (recordId) {
@@ -183,22 +216,23 @@ app.controller('metadataCtrl',
 
             $scope.showDivEvent = function (value) {
                 $scope.showDiv = value;
+                $scope.showScriptDiv = value;
             },
 
             $scope.showAttributes = function () {
-               
-                if($scope.inputText.item == null)
-                   {
-                       alert("Select Entity. ");
-                       return;
-                   }
 
-                   $scope.isLoading = true;
-                   $scope.showTabs = false;
-                   $scope.hidematches = true;
-                   $scope.hideattributes = false;
-                   var expandQuery;
-   
+                if ($scope.inputText.item == null || $scope.inputSolution.item == null) {
+                    alert("Select Entity and Solution. ");
+                    return;
+                }
+
+                $scope.showPublish = true;
+                $scope.isLoading = true;
+                $scope.showTabs = false;
+                $scope.hidematches = true;
+                $scope.hideattributes = false;
+                var expandQuery;
+
                 var oDataUrl = Xrm + '/api/data/v9.1/';
 
                 if ($scope.checkBoxItem.item)
@@ -225,9 +259,8 @@ app.controller('metadataCtrl',
 
             $scope.showFormDetails = function () {
 
-                if($scope.inputFormEntity.item == null)
-                {
-                    alert("Select Entity. ");
+                if ($scope.inputFormEntity.item == null || $scope.inputFormSolution.item == null) {
+                    alert("Select Entity and Solution. ");
                     return;
                 }
 
@@ -272,8 +305,8 @@ app.controller('metadataCtrl',
                                         var handlerType = el.childNodes[l].nodeName.toLowerCase() === "handlers" ? false : true;
 
                                         for (var m = 0; m < el.childNodes[l].childNodes.length; m++) {
-                                            var functName = el.childNodes[l].childNodes[m].attributes[0].value;
-                                            var webresourceName = el.childNodes[l].childNodes[m].attributes[1].value;
+                                            var functName = el.childNodes[l].childNodes[m].attributes["functionName"]?.value ?? "";
+                                            var webresourceName = el.childNodes[l].childNodes[m].attributes["libraryName"]?.value ?? "";
 
                                             $scope.formeventdetails.push({
                                                 "Event": eventName,
@@ -283,9 +316,9 @@ app.controller('metadataCtrl',
                                                 "FormName": forName,
                                             });
 
-                                            console.log(results.data.value[k].name + "||" + el.attributes[0].value
-                                                + "||" + el.childNodes[l].childNodes[m].attributes[0].value + "||" +
-                                                el.childNodes[l].childNodes[m].attributes[1].value);
+                                            console.log(results.data.value[k].name + "||" + el.attributes[0]?.value ?? ""
+                                                + "||" + el.childNodes[l].childNodes[m].attributes["functionName"]?.value ?? "" + "||" +
+                                                el.childNodes[l].childNodes[m].attributes["libraryName"]?.value ?? "");
                                         }
 
                                     }
@@ -296,16 +329,16 @@ app.controller('metadataCtrl',
                         }
                         $scope.isLoading = false;
                         $scope.showTabs = true;
-                        
+
                     });
             },
 
             $scope.editAttribute = function (ev, attribute) {
-                $window.open(Xrm + '/tools/systemcustomization/attributes/manageAttribute.aspx?attributeId=%7b' + attribute.MetadataId + '%7d&entityId=' + $scope.MetadataID, "popup", "width=500,height=500,left=10,top=150");
+                $window.open(Xrm + '/tools/systemcustomization/attributes/manageAttribute.aspx?attributeId=%7b' + attribute.MetadataId + '%7d&entityId=' + $scope.MetadataID + '&appSolutionId=' + $scope.inputSolution.item._solutionid_value, "popup", "width=500,height=500,left=10,top=150");
             },
 
             $scope.editForm = function (ev, formdetail) {
-                $window.open(Xrm + '/main.aspx?pagetype=formeditor&etn=' + $scope.inputFormEntity.item.LogicalName + '&extraqs=formtype%3dmain%26formId%3d' + formdetail.FormId, "popup", "width=500,height=500,left=10,top=150");
+                $window.open(Xrm + '/main.aspx?pagetype=formeditor&etn=' + $scope.inputFormEntity.item.LogicalName + '&extraqs=formtype%3dmain%26formId%3d' + formdetail.FormId + '&appSolutionId=' + $scope.inputFormSolution.item._solutionid_value, "popup", "width=500,height=500,left=10,top=150");
             },
 
             $scope.editWebresource = function (ev, fromeventdetail) {
@@ -319,13 +352,14 @@ app.controller('metadataCtrl',
                 })
                     .then(function (results) {
 
-                        $window.open(Xrm + '/main.aspx?etn=' + $scope.inputFormEntity.item.LogicalName + '&pagetype=webresourceedit&id=%7b' + results.data.value[0].webresourceid + '%7d');
+                        $window.open(Xrm + '/main.aspx?etn=' + $scope.inputFormEntity.item.LogicalName + '&pagetype=webresourceedit&id=%7b' + results.data.value[0].webresourceid + '%7d' + '&appSolutionId=' + $scope.inputFormSolution.item._solutionid_value);
                     });
 
             }
 
         $scope.Publish = function () {
             $scope.isLoading = true;
+            $scope.showTabs = false;
             var parameters = {};
             parameters.ParameterXml = "<importexportxml><entities><entity>" + $scope.inputText.item.LogicalName + "</entity></entities></importexportxml>";
 
@@ -341,13 +375,15 @@ app.controller('metadataCtrl',
                         alert($scope.inputText.item.LogicalName + " Published!");
                     }
                     $scope.isLoading = false;
+                    $scope.showTabs = true;
                 });
 
         },
 
             $scope.GetScriptContent = function (ev, fromeventdetail) {
+               
                 var oDataUrl = Xrm + '/api/data/v9.1/';
-                $scope.shouldBeFocused = true;
+                $scope.showDiv = false;
                 $scope.validatedJS = '';
                 $http({
                     method: 'GET',
@@ -361,8 +397,12 @@ app.controller('metadataCtrl',
                         $scope.validatedJS =
                             decodeURIComponent(atob(response.data.value[0].content).split('').map(function (c) {
                                 return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                            }).join(''));//window.atob(response.data.value[0].content);
-                        if (window.editor != null) {
+                            }).join(''));
+
+                        if (window.webeditor != null)
+                            window.webeditor.setValue('');
+                        
+                            if (window.editor != null) {
                             require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@0.11.1/min/vs/' } });
                             require(['vs/editor/editor.main'], function () {
                                 window.editor.setValue($scope.validatedJS);
@@ -375,13 +415,90 @@ app.controller('metadataCtrl',
                                     language: "javascript",
 
                                     value: $scope.validatedJS
+                                    
                                 });
                             });
                         }
+                       
 
                     });
 
 
+            },
+
+            $scope.GetScripts = function (prefixScript) {
+                $scope.isLoading = true;
+                $scope.showTabs = false;
+
+                if (window.webeditor != null) {
+                    window.webeditor.setValue('');
+                    $scope.webscriptName = '';
+                }
+
+
+                $scope.webresources = [];
+
+                if (prefixScript === null || prefixScript === "" || prefixScript === undefined) {
+                    alert("Please enter prefix or script name");
+                    $scope.isLoading = false;
+                    $scope.showTabs = true;
+                    return;
+                }
+                var oDataUrl = Xrm + '/api/data/v9.1/';
+
+                $http({
+                    method: 'GET',
+                    url: oDataUrl +
+                        'webresourceset?$select=name,displayname,webresourceid,content,createdon, modifiedon&$filter=(contains(name,\''+ prefixScript + '\')) and (webresourcetype eq 1 or webresourcetype eq 3)',
+                    async: false
+                })
+                    .then(function successCallback(response) {
+                        $scope.webresources = response.data.value;
+                        $scope.isLoading = false;
+                        $scope.showTabs = true;
+                    });
+
+
+            },
+
+            $scope.GetWebScriptContent = function (ev, webresourceinfo) {
+                var oDataUrl = Xrm + '/api/data/v9.1/';
+                $scope.showScriptDiv = false;
+
+                $scope.webscript = '';
+
+                $scope.webscriptName = webresourceinfo.name;
+                $scope.webscript =
+                    decodeURIComponent(atob(webresourceinfo.content).split('').map(function (c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''));
+
+                if (window.editor != null) 
+                        window.editor.setValue('');
+
+                if (window.webeditor != null) {
+                    require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@0.11.1/min/vs/' } });
+                    require(['vs/editor/editor.main'], function () {
+                        window.webeditor.setValue($scope.webscript);
+                    });
+                }
+                else {
+                    require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@0.11.1/min/vs/' } });
+                    require(['vs/editor/editor.main'], function () {
+                        window.webeditor = monaco.editor.create(document.getElementById('scriptcontainerid'), {
+                            language: "javascript",
+
+                            value: $scope.webscript
+                        });
+                    });
+                }
+
+
+            },
+
+            $scope.ShowScript = function () {
+                $scope.showDiv = false;
+                $scope.showCompareDiv = true;
             };
 
     });

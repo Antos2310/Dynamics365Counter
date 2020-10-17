@@ -16,6 +16,14 @@ document.getElementById('crmMetadataBrowser').addEventListener('click',function(
   });
 }, false);
 
+document.getElementById('crmAdvancedFindTools').addEventListener('click',function(e){
+  chrome.runtime.sendMessage({
+      type:e.target.id
+  }, function(){
+    window.close();
+  });
+}, false);
+
 
 
 window.onload = function()
@@ -29,6 +37,10 @@ document.getElementById('CounterTabs').addEventListener('click',function(e){
 
 document.getElementById('MetadataTabs').addEventListener('click',function(e){
   displayDiv(e, 'crmMetadataBrowser');
+}, false);
+
+document.getElementById('AdvancedFindTools').addEventListener('click',function(e){
+  displayDiv(e, 'crmAdvancedFindTools');
 }, false);
 
 function displayDiv(evt, divId) {
