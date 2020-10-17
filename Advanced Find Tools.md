@@ -2,6 +2,8 @@ WARNING: This uses the CRM internal methods to copy, paste and to get the Fecth 
 
 Step 1 : Open an advanced find window and right on the tab and select Show as Tab to use these new tools.
 
+![ScreenShot](https://github.com/Antos2310/Dynamics365Counter/blob/master/img/ShowasTab.png)
+
 Options Available:
 
 1) Copy FetchXML : This copies the Fetch XML directly without the need to click the download button
