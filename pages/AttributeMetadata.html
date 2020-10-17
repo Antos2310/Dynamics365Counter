@@ -7,9 +7,9 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular-route.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular-aria.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular-messages.min.js"></script>
-    <script src="scripts/ui-bootstrap-tpls-0.11.0.js"></script>
+    <script src="scripts/ui-bootstrap-tpls-0.12.0.js"></script>
     <script src="scripts/angular-material.min.js"></script>
-    <script src="scripts/loader.js"></script>
+    <script src="https://unpkg.com/monaco-editor@0.11.1/min/vs/loader.js"></script>
     <link rel="stylesheet" href="css/angular-material.css">
     <link rel="stylesheet" href="css/bootstrap.min.css">
 
@@ -128,11 +128,19 @@
             max-width: none !important;
         }
 
-      
-        td {
-  word-wrap:break-word;
-}
 
+        td {
+            word-wrap: break-word;
+        }
+
+        .addmargindisplay {
+            margin: 10px;
+            display: flow-root;
+        }
+
+        .addmargin {
+            margin: 10px;
+        }
     </style>
 
 
@@ -144,13 +152,21 @@
         left: 450px;"></md-progress-circular>
         <md-tabs ng-show="showTabs" md-dynamic-height md-border-bottom="">
             <md-tab label="Attributes" md-on-select="showDivEvent(true)">
-                <select type="text" ng-model="inputText.item"
-                    ng-options="item.LogicalName for item in entities | orderBy:'LogicalName' "></select>
-                <input type="text" placeholder="Search fields" ng-model="searchattr">
-                <input type="checkbox" ng-model="checkBoxItem.item" ng-click="showAttributes()">Is Custom</button>
+                <select type="text" class="addmargin" ng-model="inputText.item"
+                    ng-change="GetSolutionDetails(inputText.item, 'attr')"
+                    ng-options="item.LogicalName for item in entities | orderBy:'LogicalName' ">
+                    <option value="" disabled selected>Select Entity</option>
+                </select>
+                <select type="text" class="addmargindisplay" ng-model="inputSolution.item"
+                    ng-options="item.solutionid.friendlyname for item in solution | orderBy:'solutionid.friendlyname' ">
+                    <option value="" disabled selected>Select Solution</option>
+                </select>
+                <input type="text" class="addmargin" placeholder="Search fields" ng-model="searchattr">
+                <input type="checkbox" class="addmargin" ng-model="checkBoxItem.item" ng-click="showAttributes()">Is
+                Custom</button>
                 <button class="md-button" ng-click="showAttributes()">Get Attributes</button>
-                <button class="md-button" ng-click="Publish()">Publish</button>
-                <table>
+                <button class="md-button" ng-show="showPublish" ng-click="Publish()">Publish</button>
+                <table class="addmargin">
                     <tbody>
                         <tr>
                             <th>Select</th>
@@ -173,16 +189,23 @@
                     </tbody>
                 </table>
                 <pagination total-items="(attributes | filter:searchattr).length" ng-model="currentPage" max-size="5"
-                    boundary-links="true" items-per-page="numPerPage" class="pagination-sm">
+                    boundary-links="true" items-per-page="numPerPage" class="pagination-sm addmargin">
                 </pagination>
             </md-tab>
             <md-tab label="Forms" md-on-select="showDivEvent(true)">
-                <select type="text" ng-model="inputFormEntity.item"
-                    ng-options="item.LogicalName for item in entities | orderBy:'LogicalName' "></select>
-                <button class="md-button" ng-click="showFormDetails()">Get Form Details</button>
+                <select type="text" class="addmargin" ng-model="inputFormEntity.item"
+                    ng-options="item.LogicalName for item in entities | orderBy:'LogicalName' "
+                    ng-change="GetSolutionDetails(inputFormEntity.item, 'forms')">
+                    <option value="" disabled selected>Select Entity</option>
+                </select>
+                <select type="text" class="addmargindisplay" ng-model="inputFormSolution.item"
+                    ng-options="item.solutionid.friendlyname for item in formsolution | orderBy:'solutionid.friendlyname' ">
+                    <option value="" disabled selected>Select Solution</option>
+                </select>
+                <button class="md-button addmargindisplay" ng-click="showFormDetails()">Get Form Details</button>
                 <md-tabs md-dynamic-height="" md-border-bottom="">
                     <md-tab label="Form Information" md-on-select="showDivEvent(true)">
-                        <table>
+                        <table class="addmargin">
                             <tr ng-hide="hideattributes" ng-repeat="formdetail in formdetails  |  unique:'FormId'">
                                 <td><span style="font-weight: bold;">Form Name:</span> {{ formdetail.Name }}
 
@@ -199,8 +222,7 @@
                         <input type="text" placeholder="Filter Results" style="margin:8px" ng-model="search"
                             value="false">
                         <table style="overflow: scroll;
-                        display: table-caption;
-                        width: 85%;">
+                        display: block;width: 100%;" class="addmargin">
                             <tr>
                                 <th>Form Name</th>
                                 <th>Event</th>
@@ -223,17 +245,47 @@
                                 </td>
                                 <td>
                                     <md-button class="md-primary md-raised"
-                                        ng-click="GetScriptContent($event, formdetailevent); scrollDown()">
+                                        ng-click="GetScriptContent($event, formdetailevent); scrollDown('containerid')">
                                         View Script
                                     </md-button>
                                 </td>
                             </tr>
                         </table>
                         <pagination total-items="(formeventdetails | filter:search).length" ng-model="currentPage"
-                            max-size="5" boundary-links="true" items-per-page="numPerPage" class="pagination-sm">
+                            max-size="5" boundary-links="true" items-per-page="numPerPage"
+                            class="pagination-sm addmargin">
                         </pagination>
                     </md-tab>
                 </md-tabs>
+            </md-tab>
+            <md-tab label="Webresources" md-on-select="showDivEvent(true)">             
+                <input type="text" placeholder="Prefix or WebResource Name ex:msdyn_" style="margin:8px" ng-model="prefixScript" value="false">
+                <input type="text" placeholder="Filter Results" style="margin:8px" ng-model="searchwebresource" value="false">
+                <button class="md-button" ng-click="GetScripts(prefixScript)">Get Data</button>
+                <table style="overflow: scroll;
+            display: block;width: 100%;" class="addmargin">
+                    <tr>
+                        <th>Display Name</th>
+                        <th>Created On</th>
+                        <th>Modified On</th>
+                        <th>Name</th>
+                    </tr>
+                    <tr ng-hide="hideattributes"
+                        ng-repeat="webresource in webresources  | filter:searchwebresource| limitTo: numPerPage: (currentPage - 1) * numPerPage">
+                        <td>{{ webresource.displayname}}</td>
+                        <td>{{ webresource.createdon }}</td>
+                        <td>{{ webresource.modifiedon }}</td>
+                        <td>{{ webresource.name }}</td>
+                        <td>
+                            <md-button class="md-primary md-raised" ng-click="GetWebScriptContent($event, webresource); scrollDown('scriptcontainerid')">
+                                View Script
+                            </md-button>
+                        </td>
+                    </tr>
+                </table>
+                <pagination total-items="(webresources | filter:searchwebresource).length" ng-model="currentPage" max-size="5"
+                    boundary-links="true" items-per-page="numPerPage" class="pagination-sm addmargin">
+                </pagination>
             </md-tab>
             <md-tab ng-disabled=true>
                 <md-tab-label>
@@ -244,6 +296,12 @@
 
         <div id="containerid" ng-hide="showDiv" style="width:100%;height:100%;border:1px solid grey">
             <input type="label" ng-hide="showDiv" disabled=true id="scriptValue" value="Script Name: {{scriptName}}"
+                style="width: 100%;
+            height: 30px;
+            font-weight: bold;"></input>
+        </div>
+        <div id="scriptcontainerid" ng-hide="showScriptDiv" style="width:100%;height:100%;border:1px solid grey">
+            <input type="label" ng-hide="showScriptDiv" disabled=true id="webscriptValue" value="Script Name: {{webscriptName}}"
                 style="width: 100%;
             height: 30px;
             font-weight: bold;"></input>
