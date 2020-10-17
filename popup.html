@@ -8,7 +8,7 @@
       min-width: 130px;
       font-family: "Segoe UI", "Segoe", Tahoma, Helvetica, Arial, sans-serif;
       font-size: 14px;
-      width: 300px;
+      width: 500px;
       height: 120px;
     }
 
@@ -29,7 +29,7 @@
       color: white;
       margin: 5px;
       text-align: center;
-      width: inherit;
+      width: 200px;
     }
 
     .linksdisabled {
@@ -86,13 +86,21 @@
       border-top: none;
     }
 
-    .ahref {
+    .ahrefleft {
       font-weight: bold;
       font-size: 8px;
       background-color: inherit;
       float: left;
       cursor: pointer;
       padding: 14px 16px;
+      transition: 0.3s;
+    }
+    .ahrefright {
+      font-weight: bold;
+      font-size: 8px;
+      background-color: inherit;
+      float: right;
+      cursor: pointer;
       transition: 0.3s;
     }
   </style>
@@ -103,18 +111,28 @@
   <div id="crmRecordTabs" class="tab">
     <button id="CounterTabs" class="tablinks">Counter</button>
     <button id="MetadataTabs" class="tablinks">Tools</button>
-    <a target="_blank" class="ahref" href="https://github.com/Antos2310/Dynamics365Counter/issues/new">Report Issue</a>
+    <button id="AdvancedFindTools" class="tablinks">Adv. Find Tools</button>
+    <a target="_blank" class="ahrefleft" href="https://github.com/Antos2310/Dynamics365Counter/issues/new">Report Issue</a>
   </div>
   <div id="crmCounterLinks" class="tabcontent">
     <div class="container">
       <div class="links" id="WebApi">OData</div>
       <div class="links" id="FetchXml">Fetch XML</div>
+      <div class="links" id="TotalCount">Total Record Count</div>
     </div>
   </div>
   <div id="crmMetadataBrowser" class="tabcontent">
     <div class="container">
       <div class="links" id="Metadata">Metadata Browser</div>
       <div class="links" id="PluginSteps">Plugin Steps</div>
+    </div>
+  </div>
+  <div id="crmAdvancedFindTools" class="tabcontent">
+    <a target="_blank" class="ahrefright" href="https://github.com/Antos2310/Dynamics365Counter/blob/master/Advanced Find Tools.md">How to use</a>
+    <div class="container">
+      <div class="links" id="CopyFetch">Copy FetchXML</div>
+      <div class="links" id="PasteFetch">Paste FetchXML</div>
+      <div class="links" id="GetCount">Get Count</div>
     </div>
   </div>
   <script src="popup.js"></script>
