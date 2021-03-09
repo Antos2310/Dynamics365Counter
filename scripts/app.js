@@ -2,7 +2,7 @@
 (function () {
 
   document.addEventListener('createlink', (data) => {
-    if (data.detail && (data.detail.content === 'WebPage' || data.detail.content === 'PluginSteps')) {
+    if (data.detail && (data.detail.content === 'WebPage' || data.detail.content === 'PluginSteps' || data.detail.content === 'GetAllCount')) {
       chrome.runtime.sendMessage(data.detail);
     }
   });

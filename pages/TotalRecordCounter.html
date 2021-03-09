@@ -1,0 +1,194 @@
+<html ng-app="totalRecordCounterApp">
+
+<head>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular-route.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular-messages.min.js"></script>
+    <script src="scripts/ui-bootstrap-tpls-0.12.0.js"></script>
+    <script src="scripts/angular-material.min.js"></script>
+
+    <script src="TotalRecordCounter.js"></script>
+
+    <link rel="stylesheet" href="css/angular-material.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <style>
+        table,
+        th,
+        td {
+            border: 1px solid grey;
+            border-collapse: collapse;
+            padding: 5px;
+        }
+
+        table tr:nth-child(odd) {
+            background-color: #ffffff;
+            padding: 5px;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #ffffff;
+        }
+
+        button {
+            height: 23px;
+            width: 80px;
+            padding: 5px;
+        }
+
+        .dialogdemoBasicUsage #popupContainer {
+            position: relative;
+        }
+
+        .dialogdemoBasicUsage .footer {
+            width: 100%;
+            text-align: center;
+            margin-left: 20px;
+        }
+
+        .dialogdemoBasicUsage .footer,
+        .dialogdemoBasicUsage .footer>code {
+            font-size: 0.8em;
+            margin-top: 50px;
+        }
+
+        .dialogdemoBasicUsage button {
+            width: 200px;
+        }
+
+        .dialogdemoBasicUsage div#status {
+            color: #c60008;
+        }
+
+        .dialogdemoBasicUsage .dialog-demo-prerendered md-checkbox {
+            margin-bottom: 0;
+        }
+
+        .md-button {
+            text-transform: none;
+            color: rgba(255, 255, 255, 0.87);
+            background-color: rgb(63, 81, 181);
+            padding-left: 1px;
+        }
+
+        .md-dialog-content {
+            max-width: 300px;
+        }
+
+        .highlightText {
+            background: yellow;
+        }
+
+        .highlight {
+            color: black;
+            background: #eee;
+            border: 1px solid red;
+            border-radius: 2px;
+            margin: -1px;
+        }
+
+        .highlight:empty {
+            display: none;
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+            border: 1px solid grey;
+        }
+
+        .demo-tab {
+            font-size: 18px;
+            color: navy;
+        }
+
+        table {
+            table-layout: auto;
+            border-collapse: collapse;
+            overflow: scroll;
+        }
+
+        table td {
+            border: 1px solid #ccc;
+        }
+
+        table .absorbing-column {
+            width: 100%;
+        }
+
+        .padding-label
+        {
+            padding-left: 8px;
+        }
+    </style>
+
+
+</head>
+
+<body ng-controller="totalRecordCounterCtrl" ng-init="init()">
+    <div class="well" style="font-family: undefined;">
+        <md-progress-circular md-mode="indeterminate" ng-show="isLoading" style="margin: 450px;
+        left: 450px;"></md-progress-circular>
+        <md-tabs ng-show="showTabs" md-dynamic-height md-border-bottom="">
+            <md-tab label="All Counts">
+                <button class="md-button" ng-click="inputChanged()">Get Tables</button>
+                <button class="md-button" ng-click="getCounts()">Get Counts</button>
+                <label><input type="checkbox" ng-click="showSelected()" ng-model="selectedList" /> Show Selected
+                </label>
+                <input type="text" placeholder="filter" ng-model="search">
+
+                <input type="checkbox" ng-click="toggleAll()" ng-model="selectedAll"> <label id="lblFilter"> Select
+                    Filtered </label></input>
+                    <div><label class="padding-label">Refresh Counts
+                
+                    <div>
+                        <button class="md-button" ng-click="setRefreshInterval()">Refresh Data</button>
+                        <input type="number" placeholder="Interval in milliseconds" ng-model="interval">
+                        <button class="md-button" ng-click="clearInterval()">Clear Interval</button>
+                    </div>
+                </div>
+               </label>
+               
+                <div id="exportable">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th><a href="#"
+                                        ng-click="orderByField='DisplayName.LocalizedLabels[0].Label'; reverseSort = !reverseSort">
+                                        Display Name <span
+                                            ng-show="orderByField == 'DisplayName.LocalizedLabels[0].Label'"><span
+                                                ng-show="!reverseSort">^</span><span
+                                                ng-show="reverseSort">v</span></span>
+                                    </a></th>
+                                <th>Logical Name</th>
+                                <th>Is Custom</th>
+                                <th>Count</th>
+                            </tr>
+                            <tr ng-hide="hidematches"
+                                ng-repeat="match in matches | filter:search | orderBy:orderByField:reverseSort">
+
+                                <td><label></label><input type="checkbox" ng-model="match.Selected"
+                                        ng-change="optionToggled()"> {{ match.DisplayName.LocalizedLabels[0].Label }}
+                                    </label></td>
+                                <td>{{ match.LogicalName }}</td>
+                                <td>{{ match.IsCustomEntity }}</td>
+                                <td>{{ match.Count }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </md-tab>
+            <md-tab ng-disabled=true>
+                <md-tab-label>
+                    <div class="demo-tab">{{orgName}}</div>
+                </md-tab-label>
+            </md-tab>
+
+        </md-tabs>
+    </div>
+
+</body>
+
+</html>

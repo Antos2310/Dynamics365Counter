@@ -16,6 +16,13 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 			url: `PluginSteps.html`,
 		});
 	}
+	else if (message.content === 'GetAllCount') {
+		_globalXrm = message.type;
+
+		chrome.tabs.create({
+			url: `TotalRecordCounter.html`,
+		});
+	}
 	else if (message.type === 'GetXrm') {
 		sendResponse(_globalXrm);
 	}

@@ -192,6 +192,20 @@ var pluralName = "";
         
     };
 
+    Dynamics365.GetAllCount = function (formWindow, Xrm) {
+        var extensionMessage = {
+            type: Xrm.Page.context.getClientUrl(),
+            category: 'WebPage',
+            content: 'GetAllCount',
+          };
+      
+          var createLinkEvent = new CustomEvent('createlink', {
+            detail: extensionMessage,
+          });
+          createLinkEvent.initEvent('createlink', false, false);
+          document.dispatchEvent(createLinkEvent);
+    };
+
     Dynamics365.TotalCount = function (formWindow, Xrm) {
 
         createDialog();
@@ -258,8 +272,14 @@ var pluralName = "";
         var pasteFetch = prompt("enter fetch to paste.");
         if (pasteFetch === null) return;
 
+        var parseFet = new DOMParser();
+        var fetDoc = parseFet.parseFromString(pasteFetch, "text/xml");
+        var entName = fetDoc.getElementsByTagName("entity")[0].getAttribute("name");
+        
         formWindow.$find("advFind").Clear();
-        formWindow.$find("advFind").set_fetchXml(pasteFetch); 
+        formWindow.$("#slctPrimaryEntity").val(entName);
+        formWindow.$find("advFind").set_fetchXml(pasteFetch);
+        
     }
 
     Dynamics365.GetCount = function (formWindow, Xrm) {
@@ -337,7 +357,7 @@ var pluralName = "";
 
 window.addEventListener('message', function (event) {
     if (event.data.type && (event.data.type === 'WebApi' || event.data.type === 'FetchXml' || event.data.type === 'TotalCount' || event.data.type === 'Metadata'
-    || event.data.type === 'PluginSteps' || event.data.type === 'CopyFetch' || event.data.type === 'PasteFetch' || event.data.type === 'GetCount')) {
+    || event.data.type === 'PluginSteps' || event.data.type === 'CopyFetch' || event.data.type === 'PasteFetch' || event.data.type === 'GetCount'|| event.data.type === 'GetAllCount')) {
         var contentWindows = Array.from(document.querySelectorAll('iframe')).filter(function (d) {
             return d.style.visibility !== 'hidden'
         });
